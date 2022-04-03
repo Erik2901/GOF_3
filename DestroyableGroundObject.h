@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-
+#include "TankAdaptee.h"
 #include "GameObject.h"
 
 class DestroyableGroundObject : public GameObject
@@ -13,5 +13,5 @@ public:
     virtual inline uint16_t GetScore() const = 0;
 
 protected:
-
+    TankAdaptee tank;
 };
