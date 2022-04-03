@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <typeinfo>
 
 #include "LevelGUI.h"
 #include "Plane.h"
@@ -24,6 +25,41 @@ public:
     void DrawFrame();
     void MoveObjects();
     void CheckObjects();
+    class BombIterator {
+        vector<DynamicObject>& refdobj;
+        int curIndex;
+        Bomb* ptr1;
+        DynamicObject* ptr;
+
+    public:
+
+        BombIterator(vector<DynamicObject>& ref) : refdobj(ref), curIndex(-1), ptr(nullptr) { ++(*this); }
+
+        void reset();
+
+        BombIterator& operator++ ();
+
+        BombIterator& operator-- ();
+
+        DynamicObject& operator*();
+
+        bool operator==(BombIterator it);
+
+        bool operator!=(BombIterator it);
+    };
+
+    BombIterator begin()
+    {
+        BombIterator it(vecDynamicObj);
+        return it;
+    }
+
+    BombIterator end()
+    {
+        BombIterator it(vecDynamicObj);
+        it.reset();
+        return it;
+    }
 
 private:
 

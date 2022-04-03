@@ -7,6 +7,7 @@
 #include "Bomb.h"
 #include "Ground.h"
 #include "Tank.h"
+#include "TankAdapter.h"
 #include "House.h"
 
 using namespace std;
@@ -48,12 +49,12 @@ SBomber::SBomber()
     pGr->SetWidth(width - 2);
     vecStaticObj.push_back(pGr);
 
-    Tank* pTank = new Tank;
+    TankAdapter* pTank = new TankAdapter;
     pTank->SetWidth(13);
     pTank->SetPos(30, groundY - 1);
     vecStaticObj.push_back(pTank);
 
-    pTank = new Tank;
+    pTank = new TankAdapter;
     pTank->SetWidth(13);
     pTank->SetPos(50, groundY - 1);
     vecStaticObj.push_back(pTank);
@@ -184,11 +185,11 @@ void SBomber::DeleteStaticObj(GameObject* pObj)
 vector<DestroyableGroundObject*> SBomber::FindDestoyableGroundObjects() const
 {
     vector<DestroyableGroundObject*> vec;
-    Tank* pTank;
+    TankAdapter* pTank;
     House* pHouse;
     for (size_t i = 0; i < vecStaticObj.size(); i++)
     {
-        pTank = dynamic_cast<Tank*>(vecStaticObj[i]);
+        pTank = dynamic_cast<TankAdapter*>(vecStaticObj[i]);
         if (pTank != nullptr)
         {
             vec.push_back(pTank);
@@ -225,14 +226,12 @@ Ground* SBomber::FindGround() const
 vector<Bomb*> SBomber::FindAllBombs() const
 {
     vector<Bomb*> vecBombs;
+    SBomber::BombIterator it = vecDynamicObj.begin();
 
-    for (size_t i = 0; i < vecDynamicObj.size(); i++)
+    for (; it != it.end(); it++)
     {
-        Bomb* pBomb = dynamic_cast<Bomb*>(vecDynamicObj[i]);
-        if (pBomb != nullptr)
-        {
-            vecBombs.push_back(pBomb);
-        }
+        //Bomb* pBomb = dynamic_cast<Bomb*>(*it);
+        vecBombs.push_back(dynamic_cast<Bomb*>(*it));
     }
 
     return vecBombs;
@@ -366,3 +365,77 @@ void SBomber::DropBomb()
         score -= Bomb::BombCost;
     }
 }
+
+void SBomber::BombIterator::reset() 
+{ 
+    curIndex = -1; ptr = nullptr; 
+}
+
+SBomber::BombIterator& SBomber::BombIterator::operator++ ()
+{
+    curIndex++;
+
+    if (curIndex == -1)
+        curIndex = 0;
+
+    for (; curIndex < refdobj.size(); curIndex++)
+    {
+        if (typeid(refdobj[curIndex]) == typeid(*ptr1))
+        {
+            ptr = &refdobj[curIndex];
+            break;
+        }
+    }
+
+    if (curIndex == refdobj.size())
+    {
+        curIndex = -1;
+        ptr = nullptr;
+    }
+
+    return *this;
+}
+
+SBomber::BombIterator& SBomber::BombIterator::operator-- ()
+{
+    if (curIndex == -1)
+        curIndex = refdobj.size() - 1;
+
+    for (; curIndex >= 0; curIndex--)
+    {
+        if (typeid(refdobj[curIndex]) == typeid(*ptr1))
+        {
+            ptr = &refdobj[curIndex];
+            break;
+        }
+    }
+
+    if (curIndex == -1)
+    {
+        ptr = nullptr;
+    }
+
+    return *this;
+}
+
+DynamicObject& SBomber::BombIterator::operator*()
+{
+    return refdobj.at(curIndex);
+}
+
+bool SBomber::BombIterator::operator==(BombIterator it)
+{
+    if (curIndex == it.curIndex &&
+        ptr == it.ptr &&
+        refdobj == it.refdobj)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool SBomber::BombIterator::operator!=(BombIterator it)
+{
+    return !(*this == it);
+}
+
